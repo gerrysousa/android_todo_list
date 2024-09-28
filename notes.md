@@ -95,3 +95,179 @@ Build configuration language: Kotlin DSL
    ```
 
 - [ ]  Executar o aplicativo
+
+
+# Aula 04 - Configurando a navegação
+
+- [ ]  Adicionar o plugin e a dependência do kotlinx serialization com Json
+
+   ```toml
+   [versions]
+   ...
+   kotlinxSerialization = "1.7.1"
+   
+   [libraries]
+   ...
+   kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+   ```
+
+   ```groovy
+   plugins {
+       ...
+       kotlin("plugin.serialization") version libs.versions.kotlin
+   }
+   
+   dependencies {
+   
+       ...
+   
+       // Room
+       ...
+   
+       // Navigation
+       ...
+       
+       // Lifecycle
+       ...
+   
+       // Dagger Hilt
+       ...
+   
+       // Kotlinx Serialization
+       implementation(libs.kotlinx.serialization.json)
+   
+       ...
+   }
+   ```
+
+- [ ]  Criar o pacote navigation dentro do pacote principal e criar o NavHost
+
+   ```kotlin
+   @Serializable
+   object ListRoute
+   
+   @Serializable
+   data class AddEditRoute(val id: Long? = null)
+   
+   @Composable
+   fun TodoNavHost() {
+       val navController = rememberNavController()
+       NavHost(navController = navController, startDestination = ListRoute) {
+           composable<ListRoute> {
+               ListScreen()
+           }
+   
+           composable<AddEditRoute> { backStackEntry ->
+               val addEditRoute = backStackEntry.toRoute<AddEditRoute>()
+               AddEditScreen()
+           }
+       }
+   }
+   ```
+
+- [ ]  Adicionar as ações na tela de Listagem para redirecionar para a tela de adicionar/editar
+
+   ```kotlin
+   @Composable
+   fun ListScreen(
+       navigateToAddEditScreen: (id: Long?) -> Unit,
+   ) {
+       ListContent(
+           todos = emptyList(),
+           onAddItemClick = {
+               navigateToAddEditScreen(null)
+           }
+       )
+   }
+   
+   @Composable
+   fun ListContent(
+       todos: List<Todo>,
+       onAddItemClick: () -> Unit,
+   ) {
+       Scaffold(
+           floatingActionButton = {
+               FloatingActionButton(
+                   onClick = {
+                       onAddItemClick()
+                   }
+               ) {
+                   Icon(imageVector = Icons.Filled.Add, contentDescription = "Add")
+               }
+           }
+       ) {
+           ...
+       }
+   }
+   
+   @Preview
+   @Composable
+   private fun ListContentPreview() {
+       TodoListBaseTheme {
+           ListContent(
+               todos = listOf(
+                   todo1,
+                   todo2,
+                   todo3,
+               ),
+               onAddItemClick = {},
+           )
+       }
+   }
+   ```
+
+- [ ]  Ajustar NavHost e navegar para a tela de adicionar/editar
+
+   ```kotlin
+   ...
+   
+   @Composable
+   fun TodoNavHost() {
+      ...
+       NavHost(navController = navController, startDestination = ListRoute) {
+           composable<ListRoute> {
+               **ListScreen(
+                   navigateToAddEditScreen = { id ->
+                       navController.navigate(AddEditRoute(id))
+                   }
+               )**
+           }
+   
+           ...
+       }
+   }
+   ```
+
+- [ ]  Chamar o NavHost na Activity
+
+   ```kotlin
+   class MainActivity : ComponentActivity() {
+       override fun onCreate(savedInstanceState: Bundle?) {
+           super.onCreate(savedInstanceState)
+           enableEdgeToEdge()
+           setContent {
+               TodoListBaseTheme {
+                   **TodoNavHost()**
+               }
+           }
+       }
+   }
+   ```
+
+- [ ]  Executar o aplicativo e verficar que a tela de adicionar/editar ficou com o conteúdo atrás da status bar por causa da feature edge to edge do Android. Como nosso aplicativo nao precisa fazer uso edge to edge, podemos ajustar para utilizar a penas a área segura
+
+   ```kotlin
+   class MainActivity : ComponentActivity() {
+       override fun onCreate(savedInstanceState: Bundle?) {
+           super.onCreate(savedInstanceState)
+           enableEdgeToEdge()
+           setContent {
+               TodoListBaseTheme {
+                   **Box(modifier = Modifier.safeDrawingPadding()) {
+                       TodoNavHost()
+                   }**
+               }
+           }
+       }
+   }
+   ```

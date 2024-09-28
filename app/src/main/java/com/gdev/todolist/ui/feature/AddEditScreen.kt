@@ -21,22 +21,24 @@ import com.gdev.todolist.ui.theme.TodoListTheme
 
 
 @Composable
-fun AddEditScreen(){
-
+fun AddEditScreen() {
+    AddEditContent()
 }
 
 @Composable
-fun AddEditContent(){
+fun AddEditContent() {
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(onClick = { /*TODO*/ }) {
                 Icon(Icons.Default.Add, contentDescription = "Save")
             }
         }
-        ) { paddingValues ->
+    ) { paddingValues ->
         Column(
-            modifier = Modifier.consumeWindowInsets(paddingValues).padding(16.dp),
-        ){
+            modifier = Modifier
+                .consumeWindowInsets(paddingValues)
+                .padding(16.dp),
+        ) {
             OutlinedTextField(
                 value = "",
                 onValueChange = {},

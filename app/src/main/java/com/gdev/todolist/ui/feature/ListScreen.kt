@@ -24,23 +24,30 @@ import com.gdev.todolist.ui.components.TodoItem
 import com.gdev.todolist.ui.theme.TodoListTheme
 
 @Composable
-fun ListScreen() {
+fun ListScreen(
+    navigateToAddEditScreen: (id: Long?) -> Unit
+) {
     ListContent(
         todos = listOf(
             todo1, todo2, todo3
-        )
+        ),
+        onAddItemClicked = navigateToAddEditScreen,
+        //onCompletedChange = {},
+        onDeleteClicked = {}
     )
-
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun ListContent(
-    todos: List<Todo>
+    todos: List<Todo>,
+    onAddItemClicked: (id: Long?) -> Unit,
+    // onCompletedChange: (Todo, Boolean) -> Unit,
+    onDeleteClicked: (Todo) -> Unit
 ) {
     Scaffold(
         floatingActionButton = {
-            FloatingActionButton(onClick = { /*TODO*/ }) {
+            FloatingActionButton(onClick = { onAddItemClicked(null) }) {
                 Icon(Icons.Default.Add, contentDescription = "Add")
             }
         }
@@ -72,7 +79,10 @@ fun ListScreenPreview() {
         ListContent(
             todos = listOf(
                 todo1, todo2, todo3
-            )
+            ),
+            onAddItemClicked = {},
+            // onCompletedChange = {},
+            onDeleteClicked = {}
         )
     }
 }
