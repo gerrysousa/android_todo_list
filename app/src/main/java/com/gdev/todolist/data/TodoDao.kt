@@ -16,7 +16,7 @@ interface TodoDao {
     suspend fun delete(todo: TodoEntity)
 
     @Query("SELECT * FROM todos")
-    suspend fun getAll(): Flow<List<TodoEntity>>
+    fun getAll(): Flow<List<TodoEntity>>
 
     @Query("SELECT * FROM todos WHERE id = :id")
     suspend fun getBy(id: Long): TodoEntity?

@@ -10,7 +10,7 @@ interface TodoRepository {
 
     suspend fun delete(id: Long)
 
-    suspend fun getAll(): Flow<List<Todo>>
+    fun getAll(): Flow<List<Todo>>
 
     suspend fun getBy(id: Long): Todo?
 }

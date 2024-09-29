@@ -31,7 +31,7 @@ class TodoRepositoryImpl(
         dao.delete(existentEntity)
     }
 
-    override suspend fun getAll(): Flow<List<Todo>> {
+    override fun getAll(): Flow<List<Todo>> {
         return dao.getAll().map { entities -> mapper.map(entities) }
     }
 
