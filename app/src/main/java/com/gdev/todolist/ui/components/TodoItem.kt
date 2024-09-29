@@ -23,8 +23,6 @@ import androidx.compose.ui.unit.dp
 import com.gdev.todolist.domain.Todo
 import com.gdev.todolist.domain.todo1
 import com.gdev.todolist.domain.todo2
-import com.gdev.todolist.domain.todo3
-import com.gdev.todolist.ui.feature.ListContent
 import com.gdev.todolist.ui.theme.TodoListTheme
 
 @Composable
