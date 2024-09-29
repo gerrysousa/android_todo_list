@@ -271,3 +271,130 @@ Build configuration language: Kotlin DSL
        }
    }
    ```
+
+Aula 05 - Implementando a camada de dados
+Criar o pacote data dentro do pacote principal
+Criar a classe de dados que vai representar a entidade Todo no banco de dados
+@Entity(tableName = "todos")
+data class TodoEntity(
+@PrimaryKey(autoGenerate = true) val id: Long = 0,
+val title: String,
+val description: String?,
+val isCompleted: Boolean,
+)
+data/TodoEntity.kt
+​
+Criar a interface Dao que vai permitir fazer acesso aos dados do banco de dados
+@Dao
+interface TodoDao {
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(entity: TodoEntity)
+
+    @Delete
+    suspend fun delete(entity: TodoEntity)
+
+    @Query("SELECT * FROM todos")
+    fun getAll(): Flow<List<TodoEntity>>
+
+    @Query("SELECT * FROM todos WHERE id = :id")
+    suspend fun getBy(id: Long): TodoEntity?
+}
+data/TodoDao.kt
+​
+Criar o banco de dados Room e o objeto provider que vai fornecer um instância única do banco de dados
+@Database(
+entities = [TodoEntity::class],
+version = 1,
+)
+abstract class TodoDatabase : RoomDatabase() {
+
+    abstract val dao: TodoDao
+}
+
+object TodoDatabaseProvider {
+
+    @Volatile
+    private var INSTANCE: TodoDatabase? = null
+
+    fun provide(context: Context): TodoDatabase {
+        return INSTANCE ?: synchronized(this) {
+            val instance = Room.databaseBuilder(
+                context.applicationContext,
+                TodoDatabase::class.java,
+                "todo-app"
+            ).build()
+            INSTANCE = instance
+            instance
+        }
+    }
+}
+​
+Criar a interface do Repositório que vai ficar responsável por fornecer a abstração de como acessar os dados da fonte de dados
+interface TodoRepository {
+
+    suspend fun insert(title: String, description: String?)
+    
+    suspend fun updateCompleted(id: Long, isCompleted: Boolean)
+
+    suspend fun delete(id: Long)
+
+    fun getAll(): Flow<List<Todo>>
+
+    suspend fun getBy(id: Long): Todo?
+}
+​
+Implementar a interface com os detalhes de implementação de acesso aos dados
+class TodoRepositoryImpl(
+private val dao: TodoDao,
+) : TodoRepository {
+
+    override suspend fun insert(title: String, description: String?) {
+        val entity = TodoEntity(
+            title = title,
+            description = description,
+            isCompleted = false,
+        )
+
+        dao.insert(entity)
+    }
+    
+    override suspend fun updateCompleted(id: Long, isCompleted: Boolean) {
+        val existentEntity = dao.getBy(id) ?: return
+        val updatedEntity = existentEntity.copy(isCompleted = isCompleted)
+        dao.insert(updatedEntity)
+    }
+
+    override suspend fun delete(id: Long) {
+        val existentEntity = dao.getBy(id) ?: return
+        dao.delete(existentEntity)
+    }
+
+    override fun getAll(): Flow<List<Todo>> {
+        return dao.getAll().map {
+            it.map { entity ->
+                Todo(
+                    id = entity.id,
+                    title = entity.title,
+                    description = entity.description,
+                    isCompleted = entity.isCompleted
+                )
+            }
+        }
+    }
+
+    override suspend fun getBy(id: Long): Todo? {
+        return dao.getBy(id)?.let { entity ->
+            Todo(
+                id = entity.id,
+                title = entity.title,
+                description = entity.description,
+                isCompleted = entity.isCompleted
+            )
+        }
+    }
+}
+
+
+
+
